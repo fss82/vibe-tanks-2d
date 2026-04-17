@@ -1,0 +1,90 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #222;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 20px;
+}
+
+h1 {
+  font-size: 32px;
+  margin-top: 20px;
+}
+
+canvas {
+  border: 2px solid #444;
+  background-color: #333;
+  cursor: crosshair;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#controls {
+  margin-top: 20px;
+  text-align: center;
+  color: #aaa;
+  font-size: 14px;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  background-color: #444;
+  color: #fff;
+  border: 2px solid #666;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background-color: #555;
+  border-color: #888;
+}
+
+button:active {
+  background-color: #333;
+  border-color: #777;
+}
+
+#victoryModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#victoryModal.active {
+  display: flex;
+}
+
+.modal-content {
+  background-color: #333;
+  border: 4px solid #666;
+  padding: 40px;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 400px;
+}
+
+.modal-content h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #4f4;
+}
