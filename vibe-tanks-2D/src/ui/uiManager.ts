@@ -33,7 +33,7 @@ export class UIManager {
     this.controlsDiv.id = "controls";
     this.controlsDiv.innerHTML = `
       <p><strong>Controls:</strong></p>
-      <p>Arrow Keys/WASD: Move | Q/E: Rotate | Space/Enter: Shoot | Shift: End Turn | R: Restart</p>
+      <p>Arrow Keys: Set Direction | Space: Move | Ctrl: Shoot | Shift: End Turn | R: Restart</p>
     `;
     document.body.appendChild(this.controlsDiv);
   }
