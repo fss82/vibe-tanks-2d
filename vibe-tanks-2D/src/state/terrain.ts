@@ -32,6 +32,8 @@ export function isPassable(terrain: Terrain | null): boolean {
 }
 
 export function blocksShot(terrain: Terrain | null): boolean {
-  if (!terrain || terrain.type === TerrainType.Empty) return false;
+  if (!terrain || terrain.type === TerrainType.Empty || terrain.type === TerrainType.Water) {
+    return false;
+  }
   return true;
 }
