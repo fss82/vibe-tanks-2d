@@ -9,6 +9,7 @@ import { shoot, applyDamage, applyTerrainDamage } from "./logic/shooting";
 import { Direction } from "./state/tank";
 import { AIPlayer } from "./ai/aiPlayer";
 import { AnimationManager } from "./render/animations";
+import { ProjectileManager } from "./render/projectiles";
 
 let gameState: GameState;
 let renderer: Renderer;
@@ -17,6 +18,7 @@ let inputHandler: InputHandler;
 let uiManager: UIManager;
 let aiPlayer: AIPlayer;
 let animationManager: AnimationManager;
+let projectileManager: ProjectileManager;
 let lastFrameTime = 0;
 
 function init(): void {
@@ -29,6 +31,7 @@ function init(): void {
   uiManager = new UIManager();
   aiPlayer = new AIPlayer();
   animationManager = new AnimationManager();
+  projectileManager = new ProjectileManager();
 
   setupInputHandlers();
   setupUIHandlers();
@@ -74,19 +77,7 @@ function setupInputHandlers(): void {
   // Shooting
   inputHandler.on("shoot", () => {
     if (gameState.currentTurn === "player" && gameState.playerAP >= 1) {
-      const result = shoot(gameState, gameState.playerTank);
-      if (result.targetTank) {
-        animationManager.addHit(result.targetTank.x, result.targetTank.y);
-        applyDamage(gameState, result.targetTank, gameState.playerTank.getDamage());
-      } else if (result.terrainX !== undefined && result.terrainY !== undefined) {
-        animationManager.addExplosion(result.terrainX, result.terrainY);
-        applyTerrainDamage(
-          gameState,
-          result.terrainX,
-          result.terrainY,
-          gameState.playerTank.getDamage()
-        );
-      }
+      playerShoot();
       gameState.playerAP -= 1;
       checkTurnEnd();
     }
@@ -109,6 +100,34 @@ function setupUIHandlers(): void {
   uiManager.onRestartClick(() => {
     restartGame();
   });
+}
+
+function playerShoot(): void {
+  const result = shoot(gameState, gameState.playerTank);
+  if (result.targetTank || (result.terrainX !== undefined && result.terrainY !== undefined)) {
+    // Create projectile
+    projectileManager.addProjectile(
+      gameState.playerTank.x,
+      gameState.playerTank.y,
+      result.terrainX !== undefined ? result.terrainX : result.targetTank!.x,
+      result.terrainY !== undefined ? result.terrainY : result.targetTank!.y,
+      gameState.playerTank.direction
+    );
+  }
+}
+
+function aiShoot(tank: any): void {
+  const result = shoot(gameState, tank);
+  if (result.targetTank || (result.terrainX !== undefined && result.terrainY !== undefined)) {
+    // Create projectile
+    projectileManager.addProjectile(
+      tank.x,
+      tank.y,
+      result.terrainX !== undefined ? result.terrainX : result.targetTank!.x,
+      result.terrainY !== undefined ? result.terrainY : result.targetTank!.y,
+      tank.direction
+    );
+  }
 }
 
 function checkTurnEnd(): void {
@@ -135,7 +154,12 @@ function aiTurn(): void {
       break;
     }
 
-    aiPlayer.executeMove(gameState, gameState.aiTank, bestMove);
+    if (bestMove.type === "shoot") {
+      aiShoot(gameState.aiTank);
+    } else {
+      aiPlayer.executeMove(gameState, gameState.aiTank, bestMove);
+    }
+
     gameState.aiAP -= 1;
 
     if (!gameState.gameOver && gameState.aiAP <= 0) {
@@ -150,11 +174,12 @@ function aiTurn(): void {
 function restartGame(): void {
   gameState.reset();
   animationManager.clear();
+  projectileManager.clear();
   uiManager.hideVictoryModal();
 }
 
 function render(): void {
-  renderer.render(gameState, animationManager.getAnimations());
+  renderer.render(gameState, animationManager.getAnimations(), projectileManager.getProjectiles());
 
   if (gameState.gameOver) {
     animationManager.addExplosion(gameState.aiTank.x, gameState.aiTank.y);
@@ -169,6 +194,29 @@ function gameLoop(currentTime: number): void {
 
   // Update animations
   animationManager.update(deltaTime);
+
+  // Update projectiles and handle completed ones
+  const completedProjectiles = projectileManager.update(deltaTime);
+  for (const projectile of completedProjectiles) {
+    // Apply damage for completed projectiles
+    const hitTank =
+      gameState.playerTank.x === projectile.endX && gameState.playerTank.y === projectile.endY
+        ? gameState.playerTank
+        : gameState.aiTank.x === projectile.endX && gameState.aiTank.y === projectile.endY
+          ? gameState.aiTank
+          : null;
+
+    if (hitTank) {
+      animationManager.addHit(hitTank.x, hitTank.y);
+      const shooter = gameState.currentTurn === "ai" ? gameState.aiTank : gameState.playerTank;
+      applyDamage(gameState, hitTank, shooter.getDamage());
+    } else {
+      // Hit terrain
+      animationManager.addExplosion(projectile.endX, projectile.endY);
+      const shooter = gameState.currentTurn === "ai" ? gameState.aiTank : gameState.playerTank;
+      applyTerrainDamage(gameState, projectile.endX, projectile.endY, shooter.getDamage());
+    }
+  }
 
   // AI turn
   if (gameState.currentTurn === "ai" && !gameState.gameOver) {

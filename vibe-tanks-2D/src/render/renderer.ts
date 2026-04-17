@@ -8,6 +8,7 @@ import {
   type CanvasContext,
 } from "./canvas";
 import type { Animation } from "./animations";
+import type { Projectile } from "./projectiles";
 
 export class Renderer {
   private ctx: CanvasContext;
@@ -16,11 +17,12 @@ export class Renderer {
     this.ctx = ctx;
   }
 
-  render(gameState: GameState, animations: Animation[] = []): void {
+  render(gameState: GameState, animations: Animation[] = [], projectiles: Projectile[] = []): void {
     this.clear();
     this.renderGrid();
     this.renderTerrain(gameState);
     this.renderBonuses(gameState);
+    this.renderProjectiles(projectiles);
     this.renderTanks(gameState);
     this.renderAnimations(animations);
     this.renderUI(gameState);
@@ -116,6 +118,33 @@ export class Renderer {
   private renderTanks(gameState: GameState): void {
     this.renderTank(gameState.playerTank, Colors.playerTank);
     this.renderTank(gameState.aiTank, Colors.aiTank);
+  }
+
+  private renderProjectiles(projectiles: Projectile[]): void {
+    for (const projectile of projectiles) {
+      // Interpolate position based on progress
+      const startPixelX = projectile.startX * TILE_SIZE + TILE_SIZE / 2;
+      const startPixelY = projectile.startY * TILE_SIZE + TILE_SIZE / 2;
+      const endPixelX = projectile.endX * TILE_SIZE + TILE_SIZE / 2;
+      const endPixelY = projectile.endY * TILE_SIZE + TILE_SIZE / 2;
+
+      const currentX = startPixelX + (endPixelX - startPixelX) * projectile.progress;
+      const currentY = startPixelY + (endPixelY - startPixelY) * projectile.progress;
+
+      // Draw bullet
+      this.ctx.fillStyle = rgbaString({ r: 255, g: 255, b: 0 });
+      this.ctx.beginPath();
+      this.ctx.arc(currentX, currentY, 4, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      // Draw trail
+      this.ctx.strokeStyle = rgbaString({ r: 255, g: 255, b: 0, a: 0.5 });
+      this.ctx.lineWidth = 2;
+      this.ctx.beginPath();
+      this.ctx.moveTo(startPixelX, startPixelY);
+      this.ctx.lineTo(currentX, currentY);
+      this.ctx.stroke();
+    }
   }
 
   private renderTank(tank: Tank, color: any): void {
