@@ -36,14 +36,15 @@ export class ProjectileManager {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const projectile = this.projectiles[i];
 
-      // Update progress based on distance
+      // Update progress based on distance and speed
       const distance = Math.sqrt(
         Math.pow(projectile.endX - projectile.startX, 2) +
         Math.pow(projectile.endY - projectile.startY, 2)
       );
 
-      const pixelSpeed = projectile.speed * 40; // TILE_SIZE = 40
-      projectile.progress += (pixelSpeed * deltaTime) / (distance * 40);
+      // Slower speed: 0.2 cells per millisecond = 8 pixels per millisecond at 40px/cell
+      const cellsPerMs = 0.2;
+      projectile.progress += (cellsPerMs * deltaTime) / distance;
 
       if (projectile.progress >= 1) {
         projectile.progress = 1;
