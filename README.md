@@ -103,3 +103,32 @@ Full recreation of:
 - bullets
 - state
 
+## 11. Controls
+**Player Controls:**
+- **Arrow Keys** (Up/Down/Left/Right) - Set tank direction
+- **Space** - Move tank in current direction (1 AP)
+- **Ctrl** - Shoot (1 AP)
+- **Shift** - End turn manually
+- **R** - Restart game
+
+**Game Flow:**
+1. Set tank direction with arrows
+2. Press Space to move or Ctrl to shoot
+3. Each action costs 1 AP
+4. Turn ends automatically when AP reaches 0
+5. AI plays its turn automatically
+6. First tank destroyed loses
+
+## 12. Implementation Status
+✅ **Completed Features:**
+- 9x9 grid with procedural terrain generation
+- Player and AI tanks with full mechanics
+- AP-based turn system
+- Line-of-sight shooting with terrain interactions
+- Terrain destruction (Brick, Concrete)
+- Armor, Speed, and Damage bonuses
+- 1-turn lookahead AI with strategic evaluation
+- Explosion and damage animations
+- Victory modal with restart button
+- Full game state reset
+
